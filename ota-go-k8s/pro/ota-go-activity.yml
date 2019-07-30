@@ -72,18 +72,29 @@ spec:
       securityContext: {}
       imagePullSecrets:
         - name: default-secret
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: node.type
-                    operator: In
-                    values:
-                      - beta  
       schedulerName: default-scheduler
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 1
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ota-go-activity-svc
+  namespace: ota
+  labels:
+    app: ota-go-activity
+    name: ota-go-activity-svc
+spec:
+  ports:
+    - name: cce-service-0
+      protocol: TCP
+      port: 9070
+      targetPort: 9070
+  selector:
+    app: ota-go-activity
+  type: ClusterIP
+  sessionAffinity: None

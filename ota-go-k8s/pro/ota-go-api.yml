@@ -72,18 +72,56 @@ spec:
       securityContext: {}
       imagePullSecrets:
         - name: default-secret
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: node.type
-                    operator: In
-                    values:
-                      - beta  
       schedulerName: default-scheduler
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 1
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ota-go-api-svc
+  namespace: ota
+  labels:
+    app: ota-go-api
+    name: ota-go-api-svc
+spec:
+  ports:
+    - name: cce-service-0
+      protocol: TCP
+      port: 9030
+      targetPort: 9030
+  selector:
+    app: ota-go-api
+  type: NodePort
+  sessionAffinity: None
+  externalTrafficPolicy: Local
+
+---
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: ota-ingress
+  namespace: ota
+  annotations:
+    kubernetes.io/elb.id: 45a74d96-f242-4755-9cb7-1dac62fc5185
+    kubernetes.io/elb.ip: 119.3.82.105
+    kubernetes.io/elb.port: '443'
+spec:
+  tls:
+    - hosts:
+        - travel.jbzcx.com
+      secretName: ssl-jbzcx-com
+  rules:
+    - host: travel.jbzcx.com
+      http:
+        paths:
+          - path: /otaapi
+            backend:
+              serviceName: ota-go-api-svc
+              servicePort: 9030
+            property:
+              ingress.beta.kubernetes.io/url-match-mode: STARTS_WITH

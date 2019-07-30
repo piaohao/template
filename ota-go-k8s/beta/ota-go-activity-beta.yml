@@ -87,3 +87,23 @@ spec:
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 1
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ota-go-activity-beta-svc
+  namespace: ota-beta
+  labels:
+    app: ota-go-activity-beta
+    name: ota-go-activity-beta-svc
+spec:
+  ports:
+    - name: cce-service-0
+      protocol: TCP
+      port: 9070
+      targetPort: 9070
+  selector:
+    app: ota-go-activity-beta
+  type: ClusterIP
+  sessionAffinity: None
