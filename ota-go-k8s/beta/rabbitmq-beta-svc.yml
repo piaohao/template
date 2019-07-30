@@ -1,0 +1,20 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: rabbitmq-beta-svc
+  namespace: ota-beta
+  labels:
+    app: rabbitmq-beta
+    name: rabbitmq-beta-svc
+spec:
+  ports:
+    - name: cce-service-0
+      protocol: TCP
+      port: 5672
+      targetPort: 5672
+  selector:
+    app: rabbitmq-beta
+  type: ClusterIP
+  sessionAffinity: None
+status:
+  loadBalancer: {}
