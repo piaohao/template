@@ -1,0 +1,89 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: ota-go-activity
+  namespace: ota
+  labels:
+    app: ota-go-activity
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ota-go-activity
+  template:
+    metadata:
+      labels:
+        app: ota-go-activity
+    spec:
+      volumes:
+        - name: vol-156396590221730716
+          hostPath:
+            path: /etc/localtime
+            type: ''
+        - name: vol-156396609000849049
+          hostPath:
+            path: /data/logs/ota-go-activity
+            type: ''
+      containers:
+        - name: ota-go-activity
+          image: 'swr.cn-east-2.myhuaweicloud.com/jinbaozheng/ota-go-activity:latest-pro'
+          env:
+            - name: PAAS_APP_NAME
+              value: ota-go-activity
+            - name: PAAS_NAMESPACE
+              value: ota
+            - name: args
+              value: '--config.file.name=config-pro-k8s.yml'
+          resources:
+            limits:
+              cpu: '0'
+              memory: '0'
+            requests:
+              cpu: '0'
+              memory: '0'
+          volumeMounts:
+            - name: vol-156396590221730716
+              readOnly: true
+              mountPath: /etc/localtime
+            - name: vol-156396609000849049
+              mountPath: /data/logs/ota-go-activity
+          livenessProbe:
+            tcpSocket:
+              port: 9070
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 9070
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      imagePullSecrets:
+        - name: default-secret
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.type
+                    operator: In
+                    values:
+                      - beta  
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1

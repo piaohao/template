@@ -1,0 +1,87 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: redis-beta
+  namespace: ota-beta
+  labels:
+    app: redis-beta
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-beta
+  template:
+    metadata:
+      labels:
+        app: redis-beta
+    spec:
+      volumes:
+        - name: vol-156396590221730716
+          hostPath:
+            path: /etc/localtime
+            type: ''
+        - name: vol-156396609000849049
+          hostPath:
+            path: /data
+            type: ''
+      containers:
+        - name: redis-beta
+          image: 'redis:alpine3.8'
+          env:
+            - name: PAAS_APP_NAME
+              value: redis-beta
+            - name: PAAS_NAMESPACE
+              value: ota-beta
+          resources:
+            limits:
+              cpu: '0'
+              memory: '0'
+            requests:
+              cpu: '0'
+              memory: '0'
+          volumeMounts:
+            - name: vol-156396590221730716
+              readOnly: true
+              mountPath: /etc/localtime
+            - name: vol-156396609000849049
+              mountPath: /data
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      imagePullSecrets:
+        - name: default-secret
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.type
+                    operator: In
+                    values:
+                      - beta  
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
