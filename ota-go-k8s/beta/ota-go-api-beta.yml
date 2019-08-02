@@ -105,10 +105,29 @@ spec:
       targetPort: 9030
   selector:
     app: ota-go-api-beta
+  type: ClusterIP
+  sessionAffinity: None
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ota-go-api-beta-nodeport-svc
+  namespace: ota-beta
+  labels:
+    app: ota-go-api-beta
+    name: ota-go-api-beta-nodeport-svc
+spec:
+  ports:
+    - name: cce-service-0
+      protocol: TCP
+      port: 9030
+      targetPort: 9030
+  selector:
+    app: ota-go-api-beta
   type: NodePort
   sessionAffinity: None
   externalTrafficPolicy: Local
-
 
 ---
 kind: Ingress
@@ -131,7 +150,7 @@ spec:
         paths:
           - path: /otaapi
             backend:
-              serviceName: ota-go-api-beta-svc
+              serviceName: ota-go-api-beta-nodeport-svc
               servicePort: 9030
             property:
               ingress.beta.kubernetes.io/url-match-mode: STARTS_WITH      

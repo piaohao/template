@@ -1,19 +1,19 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: ota-go-activity
+  name: ota-java
   namespace: ota
   labels:
-    app: ota-go-activity
+    app: ota-java
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ota-go-activity
+      app: ota-java
   template:
     metadata:
       labels:
-        app: ota-go-activity
+        app: ota-java
     spec:
       volumes:
         - name: vol-156396590221730716
@@ -22,18 +22,18 @@ spec:
             type: ''
         - name: vol-156396609000849049
           hostPath:
-            path: /data/logs/ota-go-activity
+            path: /data/logs/ota-java
             type: ''
       containers:
-        - name: ota-go-activity
-          image: 'swr.cn-east-2.myhuaweicloud.com/jinbaozheng/ota-go-activity:latest-pro'
+        - name: ota-java
+          image: 'swr.cn-east-2.myhuaweicloud.com/jinbaozheng/ota-java:latest-pro'
           env:
             - name: PAAS_APP_NAME
-              value: ota-go-activity
+              value: ota-java
             - name: PAAS_NAMESPACE
               value: ota
             - name: args
-              value: '--config.file.name=config-pro-k8s.yml'
+              value: '--app.env=pro'
           resources:
             requests:
               cpu: 200m
@@ -43,10 +43,10 @@ spec:
               readOnly: true
               mountPath: /etc/localtime
             - name: vol-156396609000849049
-              mountPath: /data/logs/ota-go-activity
+              mountPath: /data/logs/ota-java
           livenessProbe:
             tcpSocket:
-              port: 9070
+              port: 8080
             initialDelaySeconds: 5
             timeoutSeconds: 5
             periodSeconds: 10
@@ -54,7 +54,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             tcpSocket:
-              port: 9070
+              port: 8080
             initialDelaySeconds: 5
             timeoutSeconds: 5
             periodSeconds: 10
@@ -69,7 +69,6 @@ spec:
       securityContext: {}
       imagePullSecrets:
         - name: default-secret
-      schedulerName: default-scheduler
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -78,7 +77,8 @@ spec:
                   - key: node.type
                     operator: NotIn
                     values:
-                      - beta
+                      - beta  
+      schedulerName: default-scheduler
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -89,18 +89,39 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: ota-go-activity-svc
+  name: ota-java-svc
   namespace: ota
   labels:
-    app: ota-go-activity
-    name: ota-go-activity-svc
+    app: ota-java
+    name: ota-java-svc
 spec:
   ports:
     - name: cce-service-0
       protocol: TCP
-      port: 9070
-      targetPort: 9070
+      port: 8080
+      targetPort: 8080
   selector:
-    app: ota-go-activity
+    app: ota-java
   type: ClusterIP
   sessionAffinity: None
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ota-java-nodeport-svc
+  namespace: ota
+  labels:
+    app: ota-java
+    name: ota-java-nodeport-svc
+spec:
+  ports:
+    - name: cce-service-0
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: ota-java
+  type: NodePort
+  sessionAffinity: None
+  externalTrafficPolicy: Local       

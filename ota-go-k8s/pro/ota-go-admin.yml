@@ -35,12 +35,9 @@ spec:
             - name: args
               value: '--config.file.name=config-pro-k8s.yml'
           resources:
-            limits:
-              cpu: '0'
-              memory: '0'
             requests:
-              cpu: '0'
-              memory: '0'
+              cpu: 200m
+              memory: 50Mi
           volumeMounts:
             - name: vol-156396590221730716
               readOnly: true
@@ -73,8 +70,58 @@ spec:
       imagePullSecrets:
         - name: default-secret
       schedulerName: default-scheduler
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.type
+                    operator: NotIn
+                    values:
+                      - beta
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 1
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ota-go-admin-svc
+  namespace: ota
+  labels:
+    app: ota-go-admin
+    name: ota-go-admin-svc
+spec:
+  ports:
+    - name: cce-service-0
+      protocol: TCP
+      port: 9050
+      targetPort: 9050
+  selector:
+    app: ota-go-admin
+  type: ClusterIP
+  sessionAffinity: None
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ota-go-admin-nodeport-svc
+  namespace: ota
+  labels:
+    app: ota-go-admin
+    name: ota-go-admin-nodeport-svc
+spec:
+  ports:
+    - name: cce-service-0
+      protocol: TCP
+      port: 9050
+      targetPort: 9050
+  selector:
+    app: ota-go-admin
+  type: NodePort
+  sessionAffinity: None
+  externalTrafficPolicy: Local         

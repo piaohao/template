@@ -1,19 +1,19 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: ota-go-activity
-  namespace: ota
+  name: ota-java-beta
+  namespace: ota-beta
   labels:
-    app: ota-go-activity
+    app: ota-java-beta
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ota-go-activity
+      app: ota-java-beta
   template:
     metadata:
       labels:
-        app: ota-go-activity
+        app: ota-java-beta
     spec:
       volumes:
         - name: vol-156396590221730716
@@ -22,31 +22,34 @@ spec:
             type: ''
         - name: vol-156396609000849049
           hostPath:
-            path: /data/logs/ota-go-activity
+            path: /data/logs/ota-java
             type: ''
       containers:
-        - name: ota-go-activity
-          image: 'swr.cn-east-2.myhuaweicloud.com/jinbaozheng/ota-go-activity:latest-pro'
+        - name: ota-java-beta
+          image: 'swr.cn-east-2.myhuaweicloud.com/jinbaozheng/ota-java:latest-beta'
           env:
             - name: PAAS_APP_NAME
-              value: ota-go-activity
+              value: ota-java-beta
             - name: PAAS_NAMESPACE
-              value: ota
+              value: ota-beta
             - name: args
-              value: '--config.file.name=config-pro-k8s.yml'
+              value: '--app.env=beta'
           resources:
+            limits:
+              cpu: '0'
+              memory: '0'
             requests:
-              cpu: 200m
-              memory: 50Mi
+              cpu: '0'
+              memory: '0'
           volumeMounts:
             - name: vol-156396590221730716
               readOnly: true
               mountPath: /etc/localtime
             - name: vol-156396609000849049
-              mountPath: /data/logs/ota-go-activity
+              mountPath: /data/logs/ota-java
           livenessProbe:
             tcpSocket:
-              port: 9070
+              port: 8080
             initialDelaySeconds: 5
             timeoutSeconds: 5
             periodSeconds: 10
@@ -54,7 +57,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             tcpSocket:
-              port: 9070
+              port: 8080
             initialDelaySeconds: 5
             timeoutSeconds: 5
             periodSeconds: 10
@@ -69,16 +72,16 @@ spec:
       securityContext: {}
       imagePullSecrets:
         - name: default-secret
-      schedulerName: default-scheduler
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
                   - key: node.type
-                    operator: NotIn
+                    operator: In
                     values:
-                      - beta
+                      - beta  
+      schedulerName: default-scheduler
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -89,18 +92,39 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: ota-go-activity-svc
-  namespace: ota
+  name: ota-java-beta-svc
+  namespace: ota-beta
   labels:
-    app: ota-go-activity
-    name: ota-go-activity-svc
+    app: ota-java-beta
+    name: ota-java-beta-svc
 spec:
   ports:
     - name: cce-service-0
       protocol: TCP
-      port: 9070
-      targetPort: 9070
+      port: 8080
+      targetPort: 8080
   selector:
-    app: ota-go-activity
+    app: ota-java-beta
   type: ClusterIP
   sessionAffinity: None
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ota-java-beta-nodeport-svc
+  namespace: ota-beta
+  labels:
+    app: ota-java-beta
+    name: ota-java-beta-nodeport-svc
+spec:
+  ports:
+    - name: cce-service-0
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: ota-java-beta
+  type: NodePort
+  sessionAffinity: None
+  externalTrafficPolicy: Local       

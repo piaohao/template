@@ -35,12 +35,9 @@ spec:
             - name: args
               value: '--config.file.name=config-pro-k8s.yml'
           resources:
-            limits:
-              cpu: '0'
-              memory: '0'
             requests:
-              cpu: '0'
-              memory: '0'
+              cpu: 200m
+              memory: 50Mi
           volumeMounts:
             - name: vol-156396590221730716
               readOnly: true
@@ -73,6 +70,15 @@ spec:
       imagePullSecrets:
         - name: default-secret
       schedulerName: default-scheduler
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.type
+                    operator: NotIn
+                    values:
+                      - beta
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -88,6 +94,26 @@ metadata:
   labels:
     app: ota-go-api
     name: ota-go-api-svc
+spec:
+  ports:
+    - name: cce-service-0
+      protocol: TCP
+      port: 9030
+      targetPort: 9030
+  selector:
+    app: ota-go-api
+  type: ClusterIP
+  sessionAffinity: None
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ota-go-api-nodeport-svc
+  namespace: ota
+  labels:
+    app: ota-go-api
+    name: ota-go-api-nodeport-svc
 spec:
   ports:
     - name: cce-service-0
@@ -121,7 +147,7 @@ spec:
         paths:
           - path: /otaapi
             backend:
-              serviceName: ota-go-api-svc
+              serviceName: ota-go-api-nodeport-svc
               servicePort: 9030
             property:
               ingress.beta.kubernetes.io/url-match-mode: STARTS_WITH

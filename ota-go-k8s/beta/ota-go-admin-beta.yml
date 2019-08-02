@@ -87,3 +87,44 @@ spec:
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 1
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ota-go-admin-beta-svc
+  namespace: ota-beta
+  labels:
+    app: ota-go-admin-beta
+    name: ota-go-admin-beta-svc
+spec:
+  ports:
+    - name: cce-service-0
+      protocol: TCP
+      port: 9050
+      targetPort: 9050
+  selector:
+    app: ota-go-admin-beta
+  type: ClusterIP
+  sessionAffinity: None
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ota-go-admin-beta-nodeport-svc
+  namespace: ota-beta
+  labels:
+    app: ota-go-admin-beta
+    name: ota-go-admin-beta-nodeport-svc
+spec:
+  ports:
+    - name: cce-service-0
+      protocol: TCP
+      port: 9050
+      targetPort: 9050
+  selector:
+    app: ota-go-admin-beta
+  type: NodePort
+  sessionAffinity: None
+  externalTrafficPolicy: Local       
