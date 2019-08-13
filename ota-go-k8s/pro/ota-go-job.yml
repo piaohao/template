@@ -36,7 +36,7 @@ spec:
               value: '--config.file.name=config-pro-k8s.yml'
           resources:
             requests:
-              cpu: 200m
+              cpu: 50m
               memory: 50Mi
           volumeMounts:
             - name: vol-156396590221730716

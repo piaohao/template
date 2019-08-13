@@ -36,7 +36,7 @@ spec:
               value: '--app.env=pro'
           resources:
             requests:
-              cpu: 200m
+              cpu: 50m
               memory: 50Mi
           volumeMounts:
             - name: vol-156396590221730716
