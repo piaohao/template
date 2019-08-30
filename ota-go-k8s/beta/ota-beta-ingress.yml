@@ -1,0 +1,34 @@
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: ota-beta-ingress
+  namespace: ota-beta
+  labels:
+    isExternal: 'true'
+    zone: data
+  annotations:
+    kubernetes.io/elb.id: 45a74d96-f242-4755-9cb7-1dac62fc5185
+    kubernetes.io/elb.ip: 119.3.82.105
+    kubernetes.io/elb.port: '443'
+    kubernetes.io/ingress.class: cce
+spec:
+  tls:
+    - hosts:
+        - travel.jbzcx.com
+      secretName: ssl-jbzcx-com
+  rules:
+    - host: travel-beta.jbzcx.com
+      http:
+        paths:
+          - path: /otaapi
+            backend:
+              serviceName: ota-go-api-beta-nodeport-svc
+              servicePort: 9030
+            property:
+              ingress.beta.kubernetes.io/url-match-mode: STARTS_WITH
+          - path: /otaadmin
+            backend:
+              serviceName: ota-go-admin-beta-nodeport-svc
+              servicePort: 9050
+            property:
+              ingress.beta.kubernetes.io/url-match-mode: STARTS_WITH
